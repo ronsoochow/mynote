@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="ron">
+    <title>笔记</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css"> -->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/vue.resource/1.0.3/vue-resource.min.js"></script>
+    <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
+    <style>
+    </style>
+    <script>
+        function showError(resp) {
+            resp.json().then(function (result) {
+                console.log('Error: ' + result.message);
+            });
+        }
+
+        $(function () {
+            var vm = new Vue({
+                el: '#vm',
+                http: {
+                    timeout: 5000
+                },
+                data: {
+                    title: '笔记列表',
+                    notes: [],
+                    loading: false
+                },
+                created: function () {
+                    this.init();
+                },
+                methods: {
+                    init: function () {
+                        var that = this;
+                        that.loading = true;
+                        that.$resource('/api/notes').get().then(function (resp) {
+                            that.loading = false;
+                            resp.json().then(function (result) {
+                                that.notes = result.notes;
+                            });
+                        }, function (resp) {
+                            that.loading = false;
+                            showError(resp);
+                        });
+                    },
+                    create: function (note) {
+                        var that = this;
+                        that.$resource('/api/notes').save(note).then(function (resp) {
+                            that.init();
+                        }, showError);
+                    },
+                    update: function (note, prop, e) {
+                        var that = this;
+                        var t = {
+                            notecontent: note.notecontent,
+                        };
+                        t[prop] = e.target.innerText;
+                        if (t[prop] === note[prop]) {
+                            return;
+                        }
+                        that.$resource('/api/notes/' + note.id).update(t).then(function (resp) {
+                            that.init();
+                        }, showError);
+                    },
+                    remove: function (note) {
+                        var that = this;
+                        that.$resource('/api/notes/' + note.id).delete().then(function (resp) {
+                            that.init();
+                        }, showError);
+                    }
+                }
+            });
+            window.vm = vm;
+
+            var vmAdd = new Vue({
+                el: '#vmAdd',
+                data: {
+                    notecontent: '',
+                },
+                methods: {
+                    submit: function () {
+                        vm.create(this.$data);
+                        this.notecontent = '';
+                    }
+                }
+            });
+        });
+    </script>
+</head>
+
+
+
+<body>
+    <div id="important" style="color:#cdbfe3; background-color:#6f5499; padding:30px 0; margin:-20px 0 20px 0;">
+        <div class="container">
+            <h1 style="color:#fff; font-size:60px">My Note</h1>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><span class="glyphicon glyphicon-th-list"></span></h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="vm">
+                            <h3>{{ title }}</h3>
+                            <hr/>
+                            <p v-if="loading">Loading...</p>
+                            <ol>
+                                <li v-for="t in notes">
+                                    <dl>
+                                        <dd contenteditable="true" v-on:blur="update(t, 'notecontent', $event)">{{ t.notecontent }}</dd>
+                                        <!-- <dd><a href="#0" v-on:click="remove(t)">Delete</a></dd> -->
+                                        <dd>
+                                            <!-- <el-button size="small" type="danger" @click="remove(t)">删除</el-button> -->
+                                            <button type="button" class="btn btn-xs btn-danger" @click="remove(t)">删除</button>
+                                        </dd>
+                                    </dl>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><span class="glyphicon glyphicon-plus"></span></h3>
+                    </div>
+                    <div class="panel-body">
+                        <form id="vmAdd" action="#0" v-on:submit.prevent="submit">
+                            <div>
+                                <label>内容:</label>
+                                <textarea class="form-control" rows="5" v-model="notecontent" class="form-control" placeholder="请填写"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">新增</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background-color:#ddd; padding: 20px 0;">
+        <div class="container">
+            <p>
+                <a target="_blank" href="https://ronsoochow.github.io/">Ron</a>
+            </p>
+        </div>
+    </footer>
+</body>
+
+
+
+
+
+
+
+</html>
