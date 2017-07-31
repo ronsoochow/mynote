@@ -7,12 +7,49 @@
     <meta name="description" content="ron">
     <title>笔记</title>
     <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Tangerine">
     <!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css"> -->
     <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
     <script src="/static/js/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/vue.resource/1.0.3/vue-resource.min.js"></script>
     <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
     <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        header {
+            /* 我们希望 header 采用固定的高度，只占用必须的空间 */
+            /* 0 flex-grow, 0 flex-shrink, auto flex-basis */
+            flex: 0 0 auto;
+        }
+
+        .main-content {
+            /* 将 flex-grow 设置为1，该元素会占用全部可使用空间 
+      而其他元素该属性值为0，因此不会得到多余的空间*/
+            /* 1 flex-grow, 0 flex-shrink, auto flex-basis */
+            flex: 1 0 auto;
+        }
+
+        .name-content {
+            /* 将 flex-grow 设置为1，该元素会占用全部可使用空间 
+      而其他元素该属性值为0，因此不会得到多余的空间*/
+            /* 1 flex-grow, 0 flex-shrink, auto flex-basis */
+            flex: 0 0 auto;
+        }
+
+        footer {
+            /* 和 header 一样，footer 也采用固定高度*/
+            /* 0 flex-grow, 0 flex-shrink, auto flex-basis */
+            flex: 0 0 auto;
+        }
     </style>
     <script>
         function showError(resp) {
@@ -36,18 +73,64 @@
                     this.init();
                 },
                 methods: {
+                    checklogin: function () {
+                        //由于这一步需要同步，使用jquery ajax
+                        // that.$resource('/api/checkuserlogin').save().then(function (resp) {
+                        //     if (resp.body.islogin == 1) {
+                        //         //alert("成功");
+                        //         //console.log("ffffffffffffff");
+                        //         //window.location.href = "/static/index.html";
+                        //     }
+                        //     else {
+                        //         //console.log("ddddddddddddd");
+                        //         window.location.href = "/static/login.html";
+                        //     }
+                        // });
+                        var islogin = false;
+                        $.ajax({
+                            type: "POST",
+                            url: "/api/checkuserlogin",
+                            async: false,
+                            success: function (resp) {
+                                //console.log(resp);
+                                if (resp.islogin == 1) {
+                                    //alert("成功");
+                                    //console.log("ffffffffffffff");
+                                    //window.location.href = "/static/index.html";
+                                    islogin = true;
+                                }
+                                else {
+                                    //console.log("ddddddddddddd");
+                                    // window.location.href = "/static/login.html";
+
+                                }
+                            },
+                            error: function (res) {
+                                showError(resp);
+                                // window.location.href = "/static/login.html";
+
+                            }
+                        });
+                        return islogin;
+
+                    },
                     init: function () {
                         var that = this;
                         that.loading = true;
-                        that.$resource('/api/notes').get().then(function (resp) {
-                            that.loading = false;
-                            resp.json().then(function (result) {
-                                that.notes = result.notes;
+                        if (this.checklogin()) {
+                            that.$resource('/api/notes').get().then(function (resp) {
+                                that.loading = false;
+                                resp.json().then(function (result) {
+                                    that.notes = result.notes;
+                                });
+                            }, function (resp) {
+                                that.loading = false;
+                                showError(resp);
                             });
-                        }, function (resp) {
-                            that.loading = false;
-                            showError(resp);
-                        });
+                        }
+                        else {
+                            window.location.href = "/static/login.html";
+                        }
                     },
                     create: function (note) {
                         var that = this;
@@ -90,6 +173,22 @@
                     }
                 }
             });
+
+            var vmhead = new Vue({
+                el: "#headdiv",
+                data: {},
+                methods: {
+                    logout: function () {
+                        var that = this;
+                        that.$resource('/api/userslogout').save().then(function (resp) {
+                            if (resp.body.out == 1) {
+                                window.location.href = "/static/login.html";
+                            }
+                        });
+                    }
+                }
+            });
+
         });
     </script>
 </head>
@@ -97,12 +196,34 @@
 
 
 <body>
-    <div id="important" style="color:#cdbfe3; background-color:#6f5499; padding:30px 0; margin:-20px 0 20px 0;">
+    <header class="navbar navbar-static-top">
+        <div class="container" id="headdiv">
+
+            <!-- <div>
+                <a href="#" class="navbar-brand" v-on:click="logout">退出</a>
+            </div> -->
+            <div class="navbar-header">
+                <div class="btn-group">
+                    <button class="btn btn-link  btn-lg  dropdown-toggle" type="button" data-toggle="dropdown">
+                欢迎~~~               <span class="caret"></span>
+                   </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li> <a href="#" v-on:click="logout">退出</a></li>
+
+                    </ul>
+                </div>
+            </div>
+
+
+        </div>
+    </header>
+    <div id="important" style="color:#cdbfe3; background-color:#444444; padding:30px 0; margin:-20px 0 20px 0;" class="name-content">
         <div class="container">
-            <h1 style="color:#fff; font-size:60px">My Note</h1>
+            <h1 style="color:#fff; font-size:80px;font-family: 'Tangerine', serif;font-weight:bold;">MyNote</h1>
         </div>
     </div>
-    <div class="container">
+
+    <div class="container main-content">
         <div class="row">
             <div class="col-md-8">
                 <div class="panel panel-default">

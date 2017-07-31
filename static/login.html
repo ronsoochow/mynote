@@ -7,6 +7,7 @@
     <meta name="description" content="ron">
     <title>登录</title>
     <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Tangerine">
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/vue.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
@@ -43,9 +44,22 @@
                     password: ''
                 },
                 created: function () {
-
+                    this.init();
                 },
                 methods: {
+                    init: function () {
+                        var that = this;
+                        that.$resource('/api/checkuserlogin').save().then(function (resp) {
+                            if (resp.body.islogin == 1) {
+                                //alert("成功");
+                                //console.log("ffffffffffffff");
+                                window.location.href = "/static/index.html";
+                            }
+                            else{
+                                //console.log("ddddddddddddd");
+                            }
+                        });
+                    },
                     create: function (user) {
                         var that = this;
                         that.$resource('/api/users').save(user).then(function (resp) {
@@ -59,7 +73,8 @@
                         var user = { username: that.username, password: that.password };
                         that.$resource('/api/userslogin').save(user).then(function (resp) {
                             if (resp.body.issuccess == 1) {
-                                alert("成功");
+                                //alert("成功");
+                                window.location.href = "/static/index.html";
                             }
                             else if (resp.body.issuccess == 0) {
                                 alert("密码错误");
@@ -96,7 +111,15 @@
 
 
 <body>
-
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="form-horizontal" style="text-align:center;">
+                    <label style="color:white;font-size:40px; font-family: 'Tangerine', serif;font-weight:bold; ">MyNote</label>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container-fluid">
         <div class="row-fluid">
             <div class="span12">

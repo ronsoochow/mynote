@@ -47,6 +47,17 @@ var User = sequelize.define('user', {
 
 
 module.exports = {
+    'POST /api/checkuserlogin': async (ctx, next) => {
+       if(ctx.session.username){
+            //console.log("1");
+            ctx.rest({ islogin: "1" });
+        }
+        else{
+            //console.log("0");
+             ctx.rest({ islogin: "0" });
+        }
+    },
+
     'POST /api/users': async (ctx, next) => {
         var t = ctx.request.body;
         if (!t.addusername || !t.addusername.trim()) {
@@ -79,18 +90,29 @@ module.exports = {
             }
         });
         if (n.length == 0) {
-             ctx.rest({issuccess:"2"});
+            ctx.rest({ issuccess: "2" });
         }
         else {
             var s = n[0];
             if (s.password == pwd) {
-                ctx.rest({issuccess:"1"});
+                ctx.rest({ issuccess: "1" });
+                //ctx.cookies.set("login", "234", {});
+                ctx.session.username=t.username;
+                //console.log(ctx.session.user);
             }
             else {
-                ctx.rest({issuccess:"0"});
+                ctx.rest({ issuccess: "0" });
             }
         }
         //issuccess:1为成功，0为失败，2为不存在此用户
+
+
+    },
+
+    'POST /api/userslogout': async (ctx, next) => {
+
+        ctx.session=null;
+        ctx.rest({out:"1"});
 
 
     }

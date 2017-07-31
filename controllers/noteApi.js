@@ -33,6 +33,15 @@ var Note = sequelize.define('note', {
 
 module.exports = {
     'GET /api/notes': async (ctx, next) => {
+        //console.log("ssssssssss"+ctx.session.user);
+        if(ctx.session.username){
+            //console.log("1");
+            ctx.rest({ islogin: "1" });
+        }
+        else{
+            //console.log("0");
+             ctx.rest({ islogin: "0" });
+        }
         ctx.rest({
             notes: await Note.findAll()
         });
